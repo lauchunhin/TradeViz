@@ -1,8 +1,13 @@
 import pandas as pd
-# DataSource APIs
+# Import data source APIs
 from full_fred.fred import Fred
 import yfinance as yf
 from futu import *
+# Import dotenv for loading API keys from .env file
+from dotenv import load_dotenv
+import os
+
+load_dotenv() # Load environment variables from .env file
 
 class DataInterface:
     def fetch_data(self):
@@ -73,10 +78,10 @@ class APIDataInterface(DataInterface):
         pass
 
 class FredDataInterface(APIDataInterface):
-    def __init__(self, key_file, series_id):
-        self.key_file = key_file
-        self.series_id = series_id
-
+    def __init__(self, series_id):
+        self.series_id = series_id # The series ID of the FRED data
+        self.key_file = os.getenv("FRED_KEY") # Get the FRED API key from the environment variable
+        
     def fetch_data(self):
         try:
             # code that may raise requests.exceptions.RequestException or fredapi.FredError
