@@ -6,6 +6,7 @@ from futu import *
 # Import dotenv for loading API keys from .env file
 from dotenv import load_dotenv
 import os
+import requests
 
 load_dotenv() # Load environment variables from .env file
 
@@ -80,19 +81,15 @@ class APIDataInterface(DataInterface):
 class FredDataInterface(APIDataInterface):
     def __init__(self, series_id):
         self.series_id = series_id # The series ID of the FRED data
-        self.key_file = os.getenv("FRED_KEY") # Get the FRED API key from the environment variable
         
     def fetch_data(self):
         try:
             # code that may raise requests.exceptions.RequestException or fredapi.FredError
-            fred = Fred(self.key_file)
+            fred = Fred()
             self.data = fred.get_series_df(self.series_id)
         except requests.exceptions.RequestException as e:
             # code to handle requests.exceptions.RequestException
             print(f"Failed to send request to FRED API: {e}")
-        except fredapi.FredError as e:
-            # code to handle fredapi.FredError
-            print(f"Failed to retrieve data from FRED API due to: {e}")
         else:
             # code to execute if no exception is raised
             return self.refine_data()
@@ -113,6 +110,7 @@ class FredDataInterface(APIDataInterface):
             print(f"An error occurred while indexing or slicing data: {e}")
         
         return self.data
+
 
 class YFinanceDataInterface(APIDataInterface):
     def __init__(self, ticker, start_date, end_date):
