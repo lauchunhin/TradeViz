@@ -15,7 +15,7 @@ The `FredDataInterface` class allows you to fetch data from the FRED API. You ne
 Example: Fetching the data of `10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity`
 ```
 # Create an instance of FredDataInterface with the API key file and the corresponding series ID for the Treasury Constant Maturity
-fred_interface = FredDataInterface('key.txt', 'T10Y2Y')
+fred_interface = FredDataInterface('T10Y2Y')
 # Fetch the data from FRED
 fred_data = fred_interface.fetch_data()
 # Display the dataframe
@@ -61,6 +61,31 @@ excel_interface = ExcelDataInterface('PATH_TO_CPIAUCSL.xls')
 excel_data = excel_interface.fetch_data()
 display(excel_data)
 ```
+
+## Setting Up API Key Securely
+This guide will walk you through the process of setting up your FRED API key securely using the `zsh` shell as an example.
+
+#### Step 1: Open the Startup Script
+Open your `zsh` shell’s startup script with a text editor. The startup script for `zsh` is typically `~/.zshrc`. You can open it with the following command:
+```
+nano ~/.zshrc
+```
+#### Step 2: Add the Export Command
+Scroll to the bottom of the file and add the line that exports your FRED API key. It should look something like this:
+```
+export FRED_API_KEY="your_api_key"
+```
+Replace `"your_api_key"` with your actual FRED API key.
+
+#### Step 3: Save and Exit
+Save the file and exit the editor. If you’re using `nano`, you can do this by pressing `Ctrl+X`, then `Y` to confirm that you want to save the changes, and then Enter to confirm the file name.
+
+#### Step 4: Source the Startup File
+To make sure your changes take effect, you can source the startup file with the following command:
+```
+source ~/.zshrc
+```
+Now, the FRED API key you added should be available in all new shell sessions. You can check this by opening a new terminal window and typing `echo $FRED_API_KEY`, which should display your FRED API key.
 
 ## Support
 - Excel files `.xls`
