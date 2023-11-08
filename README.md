@@ -1,10 +1,10 @@
 # TechViz Documentation
 
-TechViz is a financial tool designed to provide backtesting functions and interactive data visualization. It is implemented in Python and leverages libraries such as pandas, numpy, plotly, and dash.
+TechViz is a sophisticated financial software solution that offers backtesting capabilities and dynamic data visualization. It is engineered to support two programming pipelines, one in Python and the other in C++, catering to the diverse needs of financial professionals. This tool is designed to empower users with robust analytical tools, enhancing their ability to make data-driven decisions in the financial sector.
 
 ## Overview
 
-TechViz is a powerful tool for financial analysis, providing users with an interactive platform for backtesting and data visualization. Its use of popular Python libraries ensures robust performance and easy customization.
+TechViz stands as a formidable instrument in the realm of financial analysis, offering an immersive interface for backtesting and data visualization. It leverages the power and flexibility of widely-used Python libraries, ensuring robust performance and seamless customization. Furthermore, TechViz is built on the principles of Object-Oriented Programming (OOP) and modularity, enhancing its scalability and maintainability, thereby making it an indispensable asset for financial professionals.
 
 ## Data Interfaces
 This project provides various data interfaces to fetch data from different sources, such as **FRED**, **Yahoo Finance**, **Excel** and **CSV** files. The data interfaces are subclasses of the DataInterface abstract class, which defines a common method called `fetch_data` that returns a pandas dataframe and a common method `refine_data` that preprocesses the data. Each data interface has its own parameters and attributes that are specific to the data source.
