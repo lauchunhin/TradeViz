@@ -1,97 +1,91 @@
 import pandas as pd
-# Import data source APIs
+import numpy as np
+#* Import data source APIs
 from full_fred.fred import Fred
 import yfinance as yf
 from futu import *
-# Import dotenv for loading API keys from .env file
+#* Import dotenv for loading API keys from .env file
 from dotenv import load_dotenv
 import os
 import requests
 
-load_dotenv() # Load environment variables from .env file
+#* Load environment variables from .env file
+load_dotenv()
 
+#* DataInterface as the base class for data interfaces
 class DataInterface:
+    #? Initialize the dta interface with an optional index column
+    def __init__(self, index_column=None):
+        self.index_column = index_column
+
     def fetch_data(self):
         pass
     
+    #? Method to refine data
     def refine_data(self):
-        # Default preprocessing steps
-        # checks if ‘date’ or ‘Date’ is a column in self.data
         try:
-            if any('date' in col.lower() for col in self.data.columns) or 'Date' in self.data.columns:
-                # converts this column to datetime format, renames it to ‘Date’, and sets it as the index
-                date_column = next(col for col in self.data.columns if 'date' in col.lower())
-                self.data[date_column] = pd.to_datetime(self.data[date_column])
-                self.data.rename(columns={date_column: 'Date'}, inplace=True)
-                self.data = self.data.set_index('Date')
-            elif isinstance(self.data.index, pd.DatetimeIndex):
-                # renames the index to ‘Date’
-                self.data.index.name = 'Date'
-            else:
-                print("No date column or datetime index found.")
+            if self.index_column:
+                self.set_index()
+            self.convert_non_numeric_columns_to_numeric()
+            self.keep_only_numeric_columns()
         except Exception as e:
-            # code to handle any exception that may occur during preprocessing
-            print(f"An error occurred during data refinement: {e}")
-        
+            raise RuntimeError(f"An error occurred during data refinement: {e}")
+
         return self.data
 
+    def set_index(self):
+            if self.index_column in self.data.columns:
+                self.data[self.index_column] = pd.to_datetime(self.data[self.index_column])
+                self.data.rename(columns={self.index_column: 'Date'}, inplace=True)
+                self.data = self.data.set_index('Date')
+            else:
+                raise ValueError(f"No column named {self.index_column} found.")
+
+    def convert_non_numeric_columns_to_numeric(self):
+            for col in self.data.columns:
+                if self.data[col].dtype == 'object':
+                    self.data[col] = pd.to_numeric(self.data[col], errors='ignore')
+
+    def keep_only_numeric_columns(self):
+            self.data = self.data.select_dtypes(include=[np.number])
+
+#? Define the class for Excel data interfaces
 class ExcelDataInterface(DataInterface):
-    def __init__(self, file_path, sheet_name=0):
+    def __init__(self, file_path, index_column=None):
+        super().__init__(index_column)
         self.file_path = file_path
-        self.sheet_name = sheet_name
 
     def fetch_data(self):
-        try:
-            # code that may raise FileNotFoundError or xlrd.biffh.XLRDError
-            self.data = pd.read_excel(self.file_path, sheet_name=self.sheet_name)
-        except FileNotFoundError:
-            # code to handle FileNotFoundError
-            print(f"The file {self.file_path} does not exist.")
-        except xlrd.biffh.XLRDError:
-            # code to handle xlrd.biffh.XLRDError
-            print(f"The file {self.file_path} is not a valid Excel file or the sheet name {self.sheet_name} is not found.")
-        else:
-            # code to execute if no exception is raised
-            return self.refine_data()
-    
-    
+        self.data = pd.read_excel(self.file_path)
+        return self.refine_data()
 
+#? Define the class for CSV data interfaces
 class CSVDataInterface(DataInterface):
-    def __init__(self, file_path):
+    def __init__(self, file_path, index_column=None):
+        super().__init__(index_column)
         self.file_path = file_path
 
     def fetch_data(self):
-        try:
-            # code that may raise FileNotFoundError or pd.errors.ParserError
-            self.data = pd.read_csv(self.file_path)
-        except FileNotFoundError:
-            # code to handle FileNotFoundError
-            print(f"The file {self.file_path} does not exist.")
-        except pd.errors.ParserError:
-            # code to handle pd.errors.ParserError
-            print(f"The file {self.file_path} is not a valid CSV file.")
-        else:
-            # code to execute if no exception is raised
-            return self.refine_data()
-    
+        self.data = pd.read_csv(self.file_path)
+        return self.refine_data()
+
+#* APIDataInterface as the base class for API data interfaces
 class APIDataInterface(DataInterface):
     def fetch_data(self):
         pass
 
+#? Define the class for FRED data interfaces - Federal Reserve Economic Data
 class FredDataInterface(APIDataInterface):
     def __init__(self, series_id):
         self.series_id = series_id # The series ID of the FRED data
         
     def fetch_data(self):
         try:
-            # code that may raise requests.exceptions.RequestException or fredapi.FredError
             fred = Fred()
             self.data = fred.get_series_df(self.series_id)
         except requests.exceptions.RequestException as e:
-            # code to handle requests.exceptions.RequestException
             print(f"Failed to send request to FRED API: {e}")
         else:
-            # code to execute if no exception is raised
             return self.refine_data()
     
     def refine_data(self):
@@ -101,7 +95,9 @@ class FredDataInterface(APIDataInterface):
             self.data['date'] = pd.to_datetime(self.data['date'], format='%Y-%m-%d')
             self.data = self.data.set_index('date')
             self.data = self.data[self.data['value'] != '.']
-            self.data['value'] = self.data['value'].astype(float)
+            self.convert_non_numeric_columns_to_numeric()
+            self.keep_only_numeric_columns()
+
         except ValueError as e:
             # code to handle ValueError
             print(f"An error occurred while converting data types: {e}")
@@ -112,6 +108,7 @@ class FredDataInterface(APIDataInterface):
         return self.data
 
 
+#? Define the class for YFinance data interfaces - Yahoo Finance
 class YFinanceDataInterface(APIDataInterface):
     def __init__(self, ticker, start_date, end_date):
         self.ticker = ticker
@@ -119,17 +116,10 @@ class YFinanceDataInterface(APIDataInterface):
         self.end_date = end_date
 
     def fetch_data(self):
-        try:
-            # code that may raise yfinance.utils.YahooFinanceError
-            self.data = yf.download(self.ticker, start=self.start_date, end=self.end_date)
-        except yfinance.utils.YahooFinanceError as e:
-            # code to handle yfinance.utils.YahooFinanceError
-            print(f"Failed to retrieve data from Yahoo Finance API due to: {e}")
-        else:
-            # code to execute if no exception is raised
-            return self.refine_data()
+        self.data = yf.download(self.ticker, start=self.start_date, end=self.end_date)
+        return self.data
 
-
+#? Define the class for Futu data interfaces - Futu
 class FutuDataInterface(APIDataInterface):
     def __init__(self, stock_code, start_date, end_date, page_limit):
         self.stock_code = stock_code
@@ -138,38 +128,28 @@ class FutuDataInterface(APIDataInterface):
         self.page_limit = page_limit
 
     def fetch_data(self):
-        try:
-            # code that may raise futu.common.error.FutuError or ConnectionError
-            quote_ctx = OpenQuoteContext(host='127.0.0.1', port=11111)
-            page_req_key = None
-            all_data = []
+        quote_ctx = OpenQuoteContext(host='127.0.0.1', port=11111)
+        page_req_key = None
+        all_data = []
 
-            while True:
-                ret, data, page_req_key = quote_ctx.request_history_kline(
-                    self.stock_code,
-                    start=self.start_date,
-                    end=self.end_date,
-                    max_count=self.page_limit,
-                    page_req_key=page_req_key
-                )
+        while True:
+            ret, data, page_req_key = quote_ctx.request_history_kline(
+                self.stock_code,
+                start=self.start_date,
+                end=self.end_date,
+                max_count=self.page_limit,
+                page_req_key=page_req_key
+            )
 
-                if ret == RET_OK:
-                    all_data.append(data)
-                else:
-                    print(f"Error occurred while fetching data: {data}")
-                    break
+            if ret == RET_OK:
+                all_data.append(data)
+            else:
+                print(f"Error occurred while fetching data: {data}")
+                break
 
-                if page_req_key is None:
-                    break
+            if page_req_key is None:
+                break
 
-            quote_ctx.close()
-            self.data = pd.concat(all_data)
-        except futu.common.error.FutuError as e:
-            # code to handle futu.common.error.FutuError
-            print(f"Failed to retrieve data from Futu API due to: {e}")
-        except ConnectionError as e:
-            # code to handle ConnectionError
-            print(f"Failed to establish connection with Futu server due to: {e}")
-        else:
-            # code to execute if no exception is raised
-            return self.refine_data()
+        quote_ctx.close()
+        self.data = pd.concat(all_data)
+        return self.data()
