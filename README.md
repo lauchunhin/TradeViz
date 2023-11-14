@@ -47,7 +47,7 @@ Date
 [1258 rows × 1 columns]
 
 ```
-![alt text](![alt text](https://github.com/lauchunhin/TradeViz/blob/dev/Demo/sp500_fred_demonstration.png))
+![alt text](https://github.com/lauchunhin/TradeViz/blob/dev/Demo/sp500_fred_demonstration.png)
 
 #### Yahoo Finance Data Interface
 The `YFinanceDataInterface` class allows you to fetch data from Yahoo Finance. You need to provide a ticker symbol, a start date, and an end date to create an instance of this class. You can also specify the interval of the data, such as daily, weekly, or monthly. The `fetch_data` method will return a dataframe with the date as the index and the open, high, low, close, adjusted close, and volume as the columns.
