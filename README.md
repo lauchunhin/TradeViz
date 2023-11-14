@@ -7,39 +7,47 @@ TechViz is a sophisticated financial software solution that offers backtesting c
 TechViz stands as a formidable instrument in the realm of financial analysis, offering an immersive interface for backtesting and data visualization. It leverages the power and flexibility of widely-used Python libraries, ensuring robust performance and seamless customization. Furthermore, TechViz is built on the principles of Object-Oriented Programming (OOP) and modularity, enhancing its scalability and maintainability, thereby making it an indispensable asset for financial professionals.
 
 ## Data Interfaces
-This project provides various data interfaces to fetch data from different sources, such as **FRED**, **Yahoo Finance**, **Excel** and **CSV** files. The data interfaces are subclasses of the DataInterface abstract class, which defines a common method called `fetch_data` that returns a pandas dataframe and a common method `refine_data` that preprocesses the data. Each data interface has its own parameters and attributes that are specific to the data source.
+This project provides various data interfaces to fetch data from different sources, such as **FRED**, **Yahoo Finance**, **Excel** and **CSV** files. They are all subclasses of the abstract base class DataInterface, which defines some common methods such as `fetch_data`, `refine_data`, etc. Each data interface has its own parameters and attributes that are specific to the data source.
 
+## Data Visualizer Class
+The project also defines a class for visualizing the data in a web app. The class is called `DataVisualizer` and it takes a `DataInterface` object as an argument, along with some optional parameters such as the title, the x-axis title, and the colors. The class has a method called `visualize_data` that creates a Dash app with a dropdown menu and a graph. The dropdown menu allows the user to select a column from the data frame, and the graph shows the selected column as a line chart with hover labels and spikes. The graph is updated dynamically based on the user’s selection.
+
+### How to Use
 #### FRED Data Interface
 The `FredDataInterface` class allows you to fetch data from the FRED API. You need to provide a valid API key and a series ID to create an instance of this class. You can also specify the start date and end date of the data, as well as the frequency and aggregation method. The `fetch_data` method will return a dataframe with the date as the index and the series value as the column.
 
-Example: Fetching the data of `10-Year Treasury Constant Maturity Minus 2-Year Treasury Constant Maturity`
+Example: Fetching the data of `S&P 500`
 ```
-# Create an instance of FredDataInterface with the API key file and the corresponding series ID for the Treasury Constant Maturity
-fred_interface = FredDataInterface('T10Y2Y')
-# Fetch the data from FRED
-fred_data = fred_interface.fetch_data()
-# Display the dataframe
-display(fred_data)
+#? Create an instance of FredDataInterface with the series ID of target data
+fred_interface = FredDataInterface('SP500')
+
+#? Create an instance of DataVisualizer with the FredDataInterface instance
+data_visualizer = DataVisualizer(fred_interface, title='TechViz Visualizer', xaxis_title='Date')
+
+#? Visualize the data from the FRED API
+data_visualizer.visualize_data()
 ```
 
 Output:
 ```
-            T10Y2Y
-date              
-2000-01-03    1.16
-2000-01-04    1.12
-2000-01-05    1.14
-2000-01-06    1.15
-2000-01-07    1.17
-...            ...
-2023-08-25    1.32
-2023-08-28    1.31
-2023-08-29    1.30
-2023-08-30    1.29
-2023-08-31    1.28
+            SP500
+Date	
+2018-11-13	2722.18
+2018-11-14	2701.58
+2018-11-15	2730.20
+2018-11-16	2736.27
+2018-11-19	2690.73
+...	...
+2023-11-07	4378.38
+2023-11-08	4382.78
+2023-11-09	4347.35
+2023-11-10	4415.24
+2023-11-13	4411.55
 
-[5838 rows x 1 columns]
+[1258 rows × 1 columns]
+
 ```
+![alt text](https://github.com/lauchunhin/TradeViz/blob/dev/Demo/sp500_fred_demonstration.png)
 
 #### Yahoo Finance Data Interface
 The `YFinanceDataInterface` class allows you to fetch data from Yahoo Finance. You need to provide a ticker symbol, a start date, and an end date to create an instance of this class. You can also specify the interval of the data, such as daily, weekly, or monthly. The `fetch_data` method will return a dataframe with the date as the index and the open, high, low, close, adjusted close, and volume as the columns.

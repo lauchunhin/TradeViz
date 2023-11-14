@@ -42,9 +42,10 @@ class DataInterface:
                 raise ValueError(f"No column named {self.index_column} found.")
 
     def convert_non_numeric_columns_to_numeric(self):
-            for col in self.data.columns:
-                if self.data[col].dtype == 'object':
-                    self.data[col] = pd.to_numeric(self.data[col], errors='ignore')
+        for col in self.data.columns:
+            if self.data[col].dtype == 'object':
+                self.data[col] = pd.to_numeric(self.data[col], errors='coerce')
+        self.data.dropna(inplace=True)
 
     def keep_only_numeric_columns(self):
             self.data = self.data.select_dtypes(include=[np.number])
