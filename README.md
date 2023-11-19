@@ -104,5 +104,4 @@ Now, the FRED API key you added should be available in all new shell sessions. Y
 
 ## Coming Soon
 - C++ Branch
-- Python Branch
-- Modulisation
+- Backtesting System
