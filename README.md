@@ -101,3 +101,7 @@ Now, the FRED API key you added should be available in all new shell sessions. Y
 - Yahoo! Finance API `yfinance`(https://github.com/ranaroussi/yfinance)
 - Federal Reserve Economic Data API `full_fred`(https://fred.stlouisfed.org/)
 - Futu API `futu-api`(https://openapi.futunn.com/futu-api-doc/en/)
+
+## Coming Soon
+- C++ Branch
+- Backtesting System
